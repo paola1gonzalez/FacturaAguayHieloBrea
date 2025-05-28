@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Facturación - Agua y Hielo Brea</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #e0f7fa;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #00796b;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .product-list {
+      margin-bottom: 20px;
+    }
+    .product-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #f1f8e9;
+      border-radius: 10px;
+    }
+    button {
+      padding: 8px 12px;
+      background-color: #00796b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #004d40;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #e0f2f1;
+    }
+    .summary {
+      font-size: 18px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 20px;
+    }
+    .footer-info {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
+    .actions {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    /* Estilos especiales para impresión */
+    @media print {
+      body {
+        background: white;
+      }
+      .actions, .product-list, label, input, select {
+        display: none !important;
+      }
+      .container {
+        box-shadow: none;
+        margin: 0;
+        padding: 0;
+      }
+      .footer-info {
+        margin-top: 60px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+        <div class="container">
+          <img src="agua.png" alt="Logo de Agua y Hielos Brea" style="width: 150px; display: block; margin: 0 auto 20px;">
+          
+    <h1>Agua y Hielo Brea</h1>
+
+    <label for="cliente">Nombre del Cliente:</label>
+    <input type="text" id="cliente" placeholder="Ingrese el nombre del cliente">
+
+    <label for="tipo-pago">Tipo de pago:</label>
+    <select id="tipo-pago">
+      <option value="Efectivo">Efectivo</option>
+      <option value="Transferencia">Transferencia</option>
+      <option value="Tarjeta">Tarjeta</option>
+    </select>
+
+    <label for="telefono">Número de Teléfono:</label>
+    <input type="text" id="telefono" placeholder="Ingrese el número de teléfono">
+
+    <div class="product-list">
+      <div class="product-item">
+        <span>Agua por galón (RD$75)</span>
+        <input type="number" id="qty-galon" min="1" value="1" style="width: 60px;">
+        <button onclick="addProduct('Agua por galón', 75, 'qty-galon')">Agregar</button>
+      </div>
+      <div class="product-item">
+        <span>Funda de hielo (RD$50)</span>
+        <input type="number" id="qty-hielo" min="1" value="1" style="width: 60px;">
+        <button onclick="addProduct('Funda de hielo', 50, 'qty-hielo')">Agregar</button>
+      </div>
+      <div class="product-item">
+        <span>Botellón vacío (RD$15)</span>
+        <input type="number" id="qty-botellon" min="1" value="1" style="width: 60px;">
+        <button onclick="addProduct('Botellón vacío', 15, 'qty-botellon')">Agregar</button>
+      </div>
+      <div class="product-item">
+        <span>Fardo de botellas de agua (RD$120)</span>
+        <input type="number" id="qty-fardo" min="1" value="1" style="width: 60px;">
+        <button onclick="addProduct('Fardo de botellas de agua', 120, 'qty-fardo')">Agregar</button>
+      </div>
+    </div>
+
+    <h2>Productos seleccionados:</h2>
+    <table id="product-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Total</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="summary">
+      Total: RD$ <span id="total">0</span>
+    </div>
+
+    <div class="actions">
+      <button onclick="window.print()">Imprimir Factura</button>
+      <button onclick="enviarBaseDeDatos()">Guardar</button>
+      <button onclick="window.location.href='Base.html'">Ir a Base de Datos</button>
+    </div>
+
+    <div class="footer-info">
+      <p>Tel: 809-555-1212</p>
+      <p>Email: aguayhielobrea@gmail.com</p>
+    </div>
+  </div>
+
+  <script>
+    let total = 0;
+    const tableBody = document.querySelector("#product-table tbody");
+    const totalDisplay = document.getElementById("total");
+
+    function addProduct(name, price, qtyId) {
+      const qty = parseInt(document.getElementById(qtyId).value);
+      if (isNaN(qty) || qty <= 0) return;
+      const itemTotal = price * qty;
+
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${name}</td>
+        <td>${qty}</td>
+        <td>RD$${itemTotal}</td>
+        <td><button class="remove-btn" onclick="removeProduct(this, ${itemTotal})">Quitar</button></td>
+      `;
+
+      tableBody.appendChild(row);
+      total += itemTotal;
+      totalDisplay.textContent = total;
+    }
+
+    function removeProduct(button, itemTotal) {
+      const row = button.closest("tr");
+      row.remove();
+      total -= itemTotal;
+      totalDisplay.textContent = total;
+    }
+
+    function enviarBaseDeDatos() {
+  const cliente = document.getElementById("cliente").value;
+  const tipoPago = document.getElementById("tipo-pago").value;
+  const telefono = document.getElementById("telefono").value;
+  const productos = [];
+
+  const rows = document.querySelectorAll("#product-table tbody tr");
+  rows.forEach(row => {
+    const nombre = row.children[0].textContent;
+    const cantidad = parseInt(row.children[1].textContent);
+    const totalProducto = parseFloat(row.children[2].textContent.replace("RD$", ""));
+    productos.push({ nombre, cantidad, totalProducto });
+  });
+
+  const datos = {
+    cliente,
+    tipoPago,
+    telefono,
+    productos,
+    total
+  };
+
+  fetch('Guardar.php', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(datos)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === "success") {
+      alert("Factura guardada exitosamente");
+    } else {
+      alert("Error al guardar: " + data.message);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert("Error en la conexión");
+  });
+}
+
+  </script>
+</body>
+</html>
